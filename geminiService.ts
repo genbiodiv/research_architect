@@ -30,15 +30,18 @@ const FACILITY_PROMPTS: Record<FacilityType, string> = {
     User Input: Refined research question or draft ideas.
     JSON Output Requirements: 
     {
-      "hypotheses": [{"statement": "string", "variables": {"independent": [], "dependent": [], "control": []}, "testability_score": number, "prediction": "string"}],
+      "hypotheses": [{"id": "string", "statement": "string", "variables": {"independent": [], "dependent": [], "control": []}, "testability_score": number, "prediction": "string"}],
       "claims": {"user_claims": [], "system_inferences": [], "assumptions": []}
     }
   `,
   [FacilityType.PROJECT_MAPPER]: `
-    Purpose: Map Title -> Objectives -> Hypotheses -> Activities -> Methods -> Outputs. Detect orphans or overreach.
+    Purpose: Map Title -> Objectives -> Hypotheses -> Activities -> Methods -> Outputs. 
+    Crucial: Assign a unique "id" to every node.
+    For nodes of type "Method", provide realistic initial estimates for:
+    "timeEstimate" (1-52 weeks), "effortLevel" (1-10), "uncertaintyLevel" (1-10).
     JSON Output Requirements: 
     {
-      "graph": [{"type": "Objective|Hypothesis|Method|Output", "content": "string"}],
+      "graph": [{"id": "string", "type": "Objective|Hypothesis|Activity|Method|Output", "content": "string", "timeEstimate": number, "effortLevel": number, "uncertaintyLevel": number}],
       "consistency_report": ["string"],
       "claims": {"user_claims": [], "system_inferences": [], "assumptions": []}
     }
@@ -66,7 +69,6 @@ const FACILITY_PROMPTS: Record<FacilityType, string> = {
 };
 
 function cleanJsonResponse(text: string): string {
-  // Removes markdown code blocks and any trailing/leading whitespace
   let cleaned = text.trim();
   if (cleaned.startsWith('```json')) cleaned = cleaned.substring(7);
   if (cleaned.startsWith('```')) cleaned = cleaned.substring(3);
@@ -104,10 +106,10 @@ export async function runFacility(facility: FacilityType, userInput: string, cur
     return JSON.parse(cleanedText);
   } catch (error) {
     console.error("AI Generation Error:", error);
-    // Return a structured error object that UI can handle instead of crashing
     return {
       error: true,
       nodes: [],
+      graph: [],
       claims: { user_claims: [], system_inferences: ["The system encountered an error parsing the scientific structure."], assumptions: [] }
     };
   }

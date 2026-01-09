@@ -8,7 +8,8 @@ import {
   Box, 
   Layers, 
   Search, 
-  BookOpen
+  BookOpen,
+  ArrowRight
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -30,42 +31,53 @@ const Sidebar: React.FC<SidebarProps> = ({ activeFacility, language, projectTitl
     { type: FacilityType.SPEC_VIEWER, label: t.sidebar.spec_viewer, icon: BookOpen },
   ];
 
+  const activeIndex = items.findIndex(item => item.type === activeFacility);
+  const progress = ((activeIndex + 1) / items.length) * 100;
+
   return (
-    <aside className="w-72 bg-white border-r h-screen flex flex-col shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-20">
-      <div className="p-8 border-b flex items-center gap-4">
-        <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-indigo-100">A</div>
-        <span className="text-2xl font-black tracking-tighter text-slate-900">ARCH</span>
+    <aside className="w-64 bg-slate-900 h-screen flex flex-col shrink-0 z-40 text-slate-300">
+      <div className="p-6 h-16 border-b border-slate-800 flex items-center gap-3">
+        <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-black text-sm">A</div>
+        <span className="text-lg font-black tracking-tighter text-white">ARCH</span>
       </div>
       
-      <nav className="flex-1 p-5 space-y-1.5 overflow-y-auto">
-        <p className="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{t.sidebar.facilities}</p>
-        {items.map(item => (
-          <button
-            key={item.type}
-            onClick={() => onSelect(item.type)}
-            className={`w-full flex items-center gap-4 px-5 py-3.5 rounded-xl text-sm font-bold transition-all ${
-              activeFacility === item.type 
-                ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-200 ring-2 ring-indigo-600 ring-offset-2' 
-                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-            }`}
-          >
-            <item.icon size={18} className={activeFacility === item.type ? 'text-white' : 'text-slate-400'} />
-            {item.label}
-          </button>
-        ))}
-      </nav>
+      <div className="px-6 py-6 space-y-8 flex-1 overflow-y-auto">
+        <div>
+          <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Pipeline</p>
+          <nav className="space-y-1">
+            {items.map(item => (
+              <button
+                key={item.type}
+                onClick={() => onSelect(item.type)}
+                className={`w-full flex items-center justify-between group px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                  activeFacility === item.type 
+                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' 
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <item.icon size={16} />
+                  {item.label}
+                </div>
+                {activeFacility === item.type && <ArrowRight size={14} className="text-indigo-200" />}
+              </button>
+            ))}
+          </nav>
+        </div>
+      </div>
 
-      <div className="p-6 border-t border-slate-50">
-        <div className="flex flex-col gap-2">
-          <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-indigo-600 transition-all duration-1000" 
-              style={{ width: `${(Object.keys(FacilityType).indexOf(activeFacility) + 1) / Object.keys(FacilityType).length * 100}%` }}
-            ></div>
+      <div className="p-6 border-t border-slate-800 bg-slate-950/50">
+        <div className="flex flex-col gap-3">
+          <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-slate-500">
+            <span>Progress</span>
+            <span className="text-indigo-400">{Math.round(progress)}%</span>
           </div>
-          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest text-center">
-            {language === 'en' ? 'Methodological Progress' : 'Progreso Metodológico'}
-          </p>
+          <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-indigo-600 transition-all duration-700 ease-in-out" 
+              style={{ width: `${progress}%` }}
+            />
+          </div>
         </div>
       </div>
     </aside>

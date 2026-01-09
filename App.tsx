@@ -9,7 +9,7 @@ import ProjectMapper from './facilities/ProjectMapper';
 import ExpertiseDetector from './facilities/ExpertiseDetector';
 import LiteratureStrategyFacility from './facilities/LiteratureStrategy';
 import SpecViewer from './facilities/SpecViewer';
-import { Brain, Info, Globe, Edit2, Check } from 'lucide-react';
+import { Brain, Info, Globe, Edit2, Check, LayoutDashboard } from 'lucide-react';
 
 const App: React.FC = () => {
   const [state, setState] = useState<AppState>({
@@ -130,7 +130,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden">
+    <div className="flex h-screen bg-slate-100 text-slate-900 overflow-hidden font-sans">
       <Sidebar 
         activeFacility={state.activeFacility} 
         language={state.language}
@@ -138,46 +138,42 @@ const App: React.FC = () => {
         onSelect={(f) => setState(p => ({...p, activeFacility: f}))} 
       />
       
-      <main className="flex-1 flex flex-col relative overflow-y-auto">
-        <header className="h-20 border-b bg-white flex items-center justify-between px-8 sticky top-0 z-10 shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="p-2.5 bg-indigo-600 rounded-xl text-white shadow-lg shadow-indigo-100">
-              <Brain size={24} />
-            </div>
-            <div>
+      <div className="flex-1 flex flex-col min-w-0 bg-white">
+        <header className="h-16 border-b bg-white flex items-center justify-between px-6 z-30">
+          <div className="flex items-center gap-4 flex-1">
+            <LayoutDashboard size={20} className="text-indigo-600" />
+            <div className="h-4 w-px bg-slate-200" />
+            <div className="flex items-center gap-2">
               {isEditingTitle ? (
-                <div className="flex items-center gap-2">
-                  <input 
-                    autoFocus
-                    value={tempTitle}
-                    onChange={(e) => setTempTitle(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && saveTitle()}
-                    onBlur={saveTitle}
-                    className="text-xl font-bold text-slate-800 border-b-2 border-indigo-500 focus:outline-none bg-transparent"
-                  />
-                  <button onClick={saveTitle} className="text-emerald-500 hover:text-emerald-600">
-                    <Check size={20} />
-                  </button>
-                </div>
+                <input 
+                  autoFocus
+                  value={tempTitle}
+                  onChange={(e) => setTempTitle(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && saveTitle()}
+                  onBlur={saveTitle}
+                  className="text-sm font-bold text-slate-800 border-none focus:ring-0 bg-transparent min-w-[200px]"
+                />
               ) : (
                 <div className="flex items-center gap-2 group cursor-pointer" onClick={() => setIsEditingTitle(true)}>
-                  <h1 className="text-xl font-bold text-slate-800">{state.currentProject.title}</h1>
-                  <Edit2 size={14} className="text-slate-300 group-hover:text-indigo-400 transition-colors" />
+                  <h1 className="text-sm font-bold text-slate-800 truncate max-w-md">{state.currentProject.title}</h1>
+                  <Edit2 size={12} className="text-slate-300 group-hover:text-indigo-500 opacity-0 group-hover:opacity-100 transition-all" />
                 </div>
               )}
-              <p className="text-xs text-slate-500 font-medium">
-                {t.header.snapshot} • {elapsed} {state.language === 'en' ? 'active' : 'activo'}
-              </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={toggleLanguage}
-              className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-600 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition-all uppercase tracking-wider"
-            >
-              <Globe size={14} />
-              {state.language}
-            </button>
+          
+          <div className="flex items-center gap-4">
+            <span className="text-[10px] font-medium text-slate-400 uppercase tracking-widest hidden md:inline">
+              Session: {elapsed}
+            </span>
+            <div className="flex items-center bg-slate-100 rounded-lg p-1">
+              <button 
+                onClick={toggleLanguage}
+                className="px-3 py-1 text-[10px] font-black text-slate-600 hover:bg-white rounded-md transition-all uppercase"
+              >
+                {state.language}
+              </button>
+            </div>
             <button 
               onClick={() => {
                 const blob = new Blob([JSON.stringify(state.currentProject, null, 2)], { type: 'application/json' });
@@ -187,31 +183,31 @@ const App: React.FC = () => {
                 a.download = `arch-project-${state.currentProject.id}.json`;
                 a.click();
               }}
-              className="px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:border-slate-300 transition-all"
+              className="px-4 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 border border-slate-200 rounded-lg transition-all"
             >
-              {t.header.export_json}
-            </button>
-            <button className="px-5 py-2 text-sm font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 shadow-xl shadow-indigo-100 transition-all active:scale-95">
-              {t.header.export_docx}
+              Export
             </button>
           </div>
         </header>
 
-        <section className="p-8 max-w-6xl mx-auto w-full">
-          {renderActiveFacility()}
-        </section>
+        <main className="flex-1 overflow-y-auto relative bg-slate-50/50">
+          <div className="max-w-7xl mx-auto p-6 lg:p-10">
+            {renderActiveFacility()}
+          </div>
+        </main>
+      </div>
 
-        <div className="fixed bottom-6 right-6 group z-50">
-           <div className="bg-slate-900 text-white p-5 rounded-2xl shadow-2xl invisible group-hover:visible transition-all mb-3 w-72 text-[11px] leading-relaxed border border-slate-800 ring-4 ring-slate-900/10">
-              <p className="font-bold mb-2 border-b border-slate-700 pb-2 text-indigo-400 uppercase tracking-widest">ARCH Methodology</p>
-              <p className="mb-2">Structure-First paradigm. AI acts as a methodologist scaffold.</p>
-              <p className="text-slate-400 italic">"Design the skeleton before the skin."</p>
-           </div>
-           <button className="bg-slate-900 text-white p-4 rounded-full shadow-2xl hover:bg-indigo-600 transition-all ring-4 ring-white">
-             <Info size={24} />
-           </button>
-        </div>
-      </main>
+      {/* Persistent Help/Methodology Overlay */}
+      <div className="fixed bottom-6 right-6 z-40">
+        <button className="bg-slate-900 text-white w-12 h-12 rounded-full shadow-xl flex items-center justify-center hover:bg-indigo-600 transition-all peer group">
+          <Info size={20} />
+          <div className="absolute bottom-full right-0 mb-4 w-72 bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-2xl opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 transition-all text-[11px] leading-relaxed">
+            <p className="font-bold text-indigo-400 mb-2 uppercase tracking-widest border-b border-slate-800 pb-2">ARCH Methodology</p>
+            <p className="text-slate-300 italic mb-2">"Structure before text. Rigor before narrative."</p>
+            <p className="text-slate-500">The facility sequence guides you from semantic exploration to actionable search strategies. Use the promote actions to carry context forward.</p>
+          </div>
+        </button>
+      </div>
     </div>
   );
 };
