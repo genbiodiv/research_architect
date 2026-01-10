@@ -9,15 +9,24 @@ import ProjectMapper from './facilities/ProjectMapper';
 import ExpertiseDetector from './facilities/ExpertiseDetector';
 import LiteratureStrategyFacility from './facilities/LiteratureStrategy';
 import SpecViewer from './facilities/SpecViewer';
-import { Brain, Info, Globe, Edit2, Check, LayoutDashboard } from 'lucide-react';
+import { 
+  LayoutDashboard, 
+  ChevronRight, 
+  Download, 
+  Globe, 
+  Clock, 
+  AlertCircle,
+  FileText,
+  Workflow
+} from 'lucide-react';
 
 const App: React.FC = () => {
   const [state, setState] = useState<AppState>({
     language: 'en',
     currentProject: {
       id: 'default-project',
-      title: 'New Research Project',
-      description: 'Define your research scope here.',
+      title: 'Structural Bio-Diversity Analysis',
+      description: 'A comprehensive study on urban ecosystems.',
       facilities: {}
     },
     activeFacility: FacilityType.QUESTION_EXPLORER,
@@ -25,10 +34,8 @@ const App: React.FC = () => {
   });
 
   const [preFillValue, setPreFillValue] = useState<string | null>(null);
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [tempTitle, setTempTitle] = useState(state.currentProject.title);
-  const [sessionStartTime] = useState(Date.now());
   const [elapsed, setElapsed] = useState('0m');
+  const [sessionStartTime] = useState(Date.now());
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -45,10 +52,7 @@ const App: React.FC = () => {
       ...prev,
       currentProject: {
         ...prev.currentProject,
-        facilities: {
-          ...prev.currentProject.facilities,
-          [facility]: data
-        }
+        facilities: { ...prev.currentProject.facilities, [facility]: data }
       }
     }));
   };
@@ -58,19 +62,8 @@ const App: React.FC = () => {
     setState(prev => ({ ...prev, activeFacility: facility }));
   };
 
-  const saveTitle = () => {
-    setState(prev => ({
-      ...prev,
-      currentProject: { ...prev.currentProject, title: tempTitle || 'Untitled Project' }
-    }));
-    setIsEditingTitle(false);
-  };
-
   const toggleLanguage = () => {
-    setState(prev => ({
-      ...prev,
-      language: prev.language === 'en' ? 'es' : 'en'
-    }));
+    setState(prev => ({ ...prev, language: prev.language === 'en' ? 'es' : 'en' }));
   };
 
   const renderActiveFacility = () => {
@@ -125,12 +118,18 @@ const App: React.FC = () => {
       case FacilityType.SPEC_VIEWER:
         return <SpecViewer />;
       default:
-        return <div>Select a facility.</div>;
+        return <div className="p-10 text-center text-slate-400 font-medium">Select a facility from the sidebar to begin.</div>;
     }
   };
 
+  const getActiveClaims = () => {
+    return state.currentProject.facilities[state.activeFacility]?.claims || { user_claims: [], system_inferences: [], assumptions: [] };
+  };
+
+  const activeClaims = getActiveClaims();
+
   return (
-    <div className="flex h-screen bg-slate-100 text-slate-900 overflow-hidden font-sans">
+    <div className="flex h-screen bg-slate-50 overflow-hidden font-sans">
       <Sidebar 
         activeFacility={state.activeFacility} 
         language={state.language}
@@ -138,75 +137,126 @@ const App: React.FC = () => {
         onSelect={(f) => setState(p => ({...p, activeFacility: f}))} 
       />
       
-      <div className="flex-1 flex flex-col min-w-0 bg-white">
-        <header className="h-16 border-b bg-white flex items-center justify-between px-6 z-30">
-          <div className="flex items-center gap-4 flex-1">
-            <LayoutDashboard size={20} className="text-indigo-600" />
-            <div className="h-4 w-px bg-slate-200" />
-            <div className="flex items-center gap-2">
-              {isEditingTitle ? (
-                <input 
-                  autoFocus
-                  value={tempTitle}
-                  onChange={(e) => setTempTitle(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && saveTitle()}
-                  onBlur={saveTitle}
-                  className="text-sm font-bold text-slate-800 border-none focus:ring-0 bg-transparent min-w-[200px]"
-                />
-              ) : (
-                <div className="flex items-center gap-2 group cursor-pointer" onClick={() => setIsEditingTitle(true)}>
-                  <h1 className="text-sm font-bold text-slate-800 truncate max-w-md">{state.currentProject.title}</h1>
-                  <Edit2 size={12} className="text-slate-300 group-hover:text-indigo-500 opacity-0 group-hover:opacity-100 transition-all" />
-                </div>
-              )}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Modern Top Header */}
+        <header className="h-16 border-b bg-white flex items-center justify-between px-8 z-30 shadow-sm shrink-0">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="bg-indigo-50 p-2 rounded-lg text-indigo-600">
+              <Workflow size={18} />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <h1 className="text-sm font-bold text-slate-800 truncate leading-none mb-1">{state.currentProject.title}</h1>
+              <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                <span>{t.sidebar[state.activeFacility.toLowerCase() as keyof typeof t.sidebar] || state.activeFacility}</span>
+                <ChevronRight size={10} />
+                <span className="text-indigo-500">Live Workspace</span>
+              </div>
             </div>
           </div>
           
-          <div className="flex items-center gap-4">
-            <span className="text-[10px] font-medium text-slate-400 uppercase tracking-widest hidden md:inline">
-              Session: {elapsed}
-            </span>
-            <div className="flex items-center bg-slate-100 rounded-lg p-1">
+          <div className="flex items-center gap-6">
+            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-full border border-slate-100">
+              <Clock size={12} className="text-slate-400" />
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Active: {elapsed}</span>
+            </div>
+            
+            <div className="flex items-center gap-3">
               <button 
                 onClick={toggleLanguage}
-                className="px-3 py-1 text-[10px] font-black text-slate-600 hover:bg-white rounded-md transition-all uppercase"
+                className="w-10 h-10 flex items-center justify-center text-[10px] font-black text-slate-500 hover:text-indigo-600 bg-slate-50 hover:bg-indigo-50 border border-slate-100 rounded-xl transition-all uppercase"
               >
                 {state.language}
               </button>
+              <button 
+                className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-xl hover:bg-slate-800 transition-all shadow-lg shadow-slate-200"
+                onClick={() => {
+                  const blob = new Blob([JSON.stringify(state.currentProject, null, 2)], { type: 'application/json' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `arch-scaffold.json`;
+                  a.click();
+                }}
+              >
+                <Download size={14} />
+                <span>Export</span>
+              </button>
             </div>
-            <button 
-              onClick={() => {
-                const blob = new Blob([JSON.stringify(state.currentProject, null, 2)], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `arch-project-${state.currentProject.id}.json`;
-                a.click();
-              }}
-              className="px-4 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 border border-slate-200 rounded-lg transition-all"
-            >
-              Export
-            </button>
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto relative bg-slate-50/50">
-          <div className="max-w-7xl mx-auto p-6 lg:p-10">
-            {renderActiveFacility()}
-          </div>
-        </main>
-      </div>
+        {/* Main Work Area - Split Layout */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Facility Workspace (Scrollable) */}
+          <main className="flex-1 overflow-y-auto custom-scrollbar bg-slate-50/50">
+            <div className="max-w-5xl mx-auto p-8 lg:p-12 animate-fade-in">
+              {renderActiveFacility()}
+            </div>
+          </main>
 
-      {/* Persistent Help/Methodology Overlay */}
-      <div className="fixed bottom-6 right-6 z-40">
-        <button className="bg-slate-900 text-white w-12 h-12 rounded-full shadow-xl flex items-center justify-center hover:bg-indigo-600 transition-all peer group">
-          <Info size={20} />
-          <div className="absolute bottom-full right-0 mb-4 w-72 bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-2xl opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 transition-all text-[11px] leading-relaxed">
-            <p className="font-bold text-indigo-400 mb-2 uppercase tracking-widest border-b border-slate-800 pb-2">ARCH Methodology</p>
-            <p className="text-slate-300 italic mb-2">"Structure before text. Rigor before narrative."</p>
-            <p className="text-slate-500">The facility sequence guides you from semantic exploration to actionable search strategies. Use the promote actions to carry context forward.</p>
-          </div>
-        </button>
+          {/* Persistent Insight Panel (The Architect's Ledger) */}
+          <aside className="w-80 border-l bg-white flex flex-col shrink-0 hidden xl:flex">
+            <div className="p-6 border-b flex items-center justify-between bg-slate-50/30">
+              <h2 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] flex items-center gap-2">
+                <AlertCircle size={14} className="text-indigo-500" />
+                Architect's Ledger
+              </h2>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar space-y-8">
+              {/* Claims Section */}
+              <section>
+                <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center justify-between">
+                  Methodological Claims
+                  <span className="bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded">{activeClaims.user_claims.length}</span>
+                </h3>
+                <div className="space-y-3">
+                  {activeClaims.user_claims.length > 0 ? activeClaims.user_claims.map((claim: string, i: number) => (
+                    <div key={i} className="p-3 bg-indigo-50/30 border border-indigo-100/50 rounded-xl text-[11px] font-medium text-slate-700 leading-relaxed italic">
+                      "{claim}"
+                    </div>
+                  )) : <div className="text-[11px] text-slate-300 italic">No explicit claims detected.</div>}
+                </div>
+              </section>
+
+              {/* Inferences Section */}
+              <section>
+                <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-4">Structural Inferences</h3>
+                <div className="space-y-3">
+                   {activeClaims.system_inferences.length > 0 ? activeClaims.system_inferences.map((inf: string, i: number) => (
+                    <div key={i} className="flex gap-3 text-[11px] font-medium text-slate-600 leading-relaxed p-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0" />
+                      {inf}
+                    </div>
+                  )) : <div className="text-[11px] text-slate-300 italic">Waiting for architecture scan...</div>}
+                </div>
+              </section>
+
+              {/* Assumptions Section */}
+              <section>
+                <h3 className="text-[9px] font-black text-rose-400 uppercase tracking-widest mb-4">Critical Assumptions</h3>
+                <div className="space-y-3">
+                  {activeClaims.assumptions.length > 0 ? activeClaims.assumptions.map((ass: string, i: number) => (
+                    <div key={i} className="p-3 bg-rose-50 border border-rose-100 rounded-xl text-[11px] font-bold text-rose-700 leading-relaxed shadow-sm">
+                      ⚠️ {ass}
+                    </div>
+                  )) : <div className="text-[11px] text-slate-300 italic text-center py-4">Structure currently stable.</div>}
+                </div>
+              </section>
+            </div>
+            
+            <div className="p-6 border-t bg-slate-900 text-white">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 bg-indigo-600 rounded-lg">
+                  <FileText size={16} />
+                </div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-indigo-300">Methodology Note</p>
+              </div>
+              <p className="text-[10px] leading-relaxed text-slate-400 font-medium">
+                ARCH enforces the separation of user premises from system inferences. This prevents circular reasoning in your research design.
+              </p>
+            </div>
+          </aside>
+        </div>
       </div>
     </div>
   );

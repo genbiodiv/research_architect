@@ -3,7 +3,20 @@ import React, { useState, useEffect } from 'react';
 import { FacilityType, ProjectBlueprint, Language, BlueprintNode } from '../types';
 import { translations } from '../translations';
 import { runFacility } from '../geminiService';
-import { Box, Loader2, Workflow, AlertTriangle, CheckCircle2, Layers, Edit3, Save, Clock, Zap, ShieldAlert, BarChart3, ChevronRight } from 'lucide-react';
+import { 
+  Box, 
+  Loader2, 
+  Workflow, 
+  Layers, 
+  Edit3, 
+  Save, 
+  Clock, 
+  Zap, 
+  ShieldAlert, 
+  BarChart3, 
+  Activity,
+  Plus
+} from 'lucide-react';
 
 interface Props {
   data?: ProjectBlueprint;
@@ -60,185 +73,191 @@ const ProjectMapper: React.FC<Props> = ({ data, onUpdate, onPromoteToExpertise, 
     return 'bg-rose-500';
   };
 
-  const handlePromote = () => {
-    if (!data) return;
-    const context = data.graph.map(n => `[${n.type}] ${n.content}`).join(' ');
-    onPromoteToExpertise(context);
-  };
-
   const methods = data?.graph.filter(n => n.type === 'Method') || [];
   const totalWeeks = methods.reduce((acc, curr) => acc + (curr.timeEstimate || 0), 0);
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
-      <section className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-        <div className="p-8 border-b border-slate-100 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-             <div className="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center">
-               <Box size={20} />
-             </div>
-             <div>
-               <h2 className="text-lg font-bold text-slate-900">{t.project_mapper.title}</h2>
-               <p className="text-xs text-slate-500">{t.project_mapper.desc}</p>
-             </div>
+    <div className="space-y-12">
+      {/* Input Console */}
+      <section className="bg-white border border-slate-200 rounded-[2rem] p-8 shadow-sm">
+        <div className="max-w-3xl">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center shadow-inner">
+              <Box size={24} />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-slate-900 leading-tight">{t.project_mapper.title}</h2>
+              <p className="text-xs text-slate-500 font-medium">{t.project_mapper.desc}</p>
+            </div>
           </div>
-          <div className="flex gap-3">
-            <button 
-              onClick={handlePromote}
-              disabled={!data}
-              className="px-4 py-2 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-xl hover:bg-indigo-100 disabled:opacity-30 transition-all uppercase tracking-widest"
-            >
-              {t.common.promote_to_expertise}
-            </button>
-          </div>
-        </div>
-        
-        <div className="p-8 bg-slate-50/30">
-          <div className="flex gap-4">
+          
+          <div className="space-y-4">
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 min-h-[80px]"
-              placeholder="Refine parameters for architecture..."
+              className="w-full bg-slate-50/50 border border-slate-200 rounded-2xl px-5 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 font-medium transition-all min-h-[100px]"
+              placeholder="List objectives, potential methods, or project outputs..."
             />
-            <button
-              onClick={handleGenerate}
-              disabled={loading}
-              className="bg-amber-600 text-white px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-amber-700 disabled:opacity-50 transition-all flex items-center gap-2"
-            >
-              {loading ? <Loader2 className="animate-spin" size={16} /> : <Workflow size={16} />}
-              {t.project_mapper.generate_btn}
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={handleGenerate}
+                disabled={loading}
+                className="flex-1 bg-amber-600 text-white px-6 py-4 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-amber-700 disabled:opacity-50 transition-all flex items-center justify-center gap-3 shadow-lg shadow-amber-100"
+              >
+                {loading ? <Loader2 className="animate-spin" size={18} /> : <Workflow size={18} />}
+                {t.project_mapper.generate_btn}
+              </button>
+            </div>
           </div>
         </div>
       </section>
 
       {data && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Main List Area */}
-          <div className="lg:col-span-7 space-y-4">
-            <div className="flex items-center justify-between px-4">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+          {/* Work Area */}
+          <div className="lg:col-span-8 space-y-6">
+            <div className="flex items-center justify-between mb-4 px-2">
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{t.project_mapper.edit_mode}</span>
+              <button 
+                onClick={() => onPromoteToExpertise(data.graph.map(n => n.content).join(' '))}
+                className="text-[10px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2 hover:bg-indigo-50 px-3 py-1.5 rounded-lg transition-all"
+              >
+                <Layers size={14} /> {t.common.promote_to_expertise}
+              </button>
             </div>
-            {(data.graph || []).map((node, i) => {
-              const nodeKey = node.id || `node-${i}`;
-              const isEditing = editingId === nodeKey;
-              
-              return (
-                <div key={nodeKey} className="bg-white border border-slate-200 rounded-xl overflow-hidden hover:border-indigo-200 transition-colors group">
-                  <div className="flex gap-0 min-h-[80px]">
-                    <div className={`w-1.5 shrink-0 ${
-                      node.type === 'Objective' ? 'bg-blue-500' :
-                      node.type === 'Hypothesis' ? 'bg-emerald-500' :
-                      node.type === 'Method' ? 'bg-purple-500' :
-                      'bg-slate-300'
-                    }`} />
-                    
-                    <div className="flex-1 p-5 flex flex-col justify-center">
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="text-[9px] font-black uppercase tracking-tighter text-slate-400">{node.type}</span>
-                        <div className="h-1 w-1 bg-slate-200 rounded-full" />
-                        <button 
-                          onClick={() => setEditingId(isEditing ? null : nodeKey)}
-                          className="opacity-0 group-hover:opacity-100 text-indigo-500 transition-all hover:scale-110"
-                        >
-                          {isEditing ? <Save size={14} /> : <Edit3 size={14} />}
-                        </button>
-                      </div>
 
-                      {isEditing ? (
-                        <input
-                          autoFocus
-                          value={node.content}
-                          onChange={(e) => updateNode(nodeKey, { content: e.target.value })}
-                          className="w-full bg-slate-50 text-sm font-bold text-slate-800 border-none p-0 focus:ring-0"
-                        />
-                      ) : (
-                        <p className="text-sm font-bold text-slate-800 leading-tight">{node.content}</p>
-                      )}
-
-                      {node.type === 'Method' && (
-                        <div className="mt-4 pt-4 border-t border-slate-50 flex gap-6 items-center">
-                          <div className="flex items-center gap-2 group/slider">
-                            <Clock size={12} className="text-slate-300" />
-                            <input 
-                              type="range" min="0" max="52" 
-                              value={node.timeEstimate || 0} 
-                              onChange={(e) => updateNode(nodeKey, { timeEstimate: parseInt(e.target.value) })}
-                              className="w-20 h-1 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-indigo-600" 
-                            />
-                            <span className="text-[10px] font-bold text-slate-500">{node.timeEstimate || 0}w</span>
-                          </div>
-                          <div className="flex items-center gap-2 group/slider">
-                            <Zap size={12} className="text-slate-300" />
-                            <input 
-                              type="range" min="1" max="10" 
-                              value={node.effortLevel || 1} 
-                              onChange={(e) => updateNode(nodeKey, { effortLevel: parseInt(e.target.value) })}
-                              className="w-20 h-1 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-amber-500" 
-                            />
-                            <span className="text-[10px] font-bold text-slate-500">{node.effortLevel || 1}/10</span>
-                          </div>
+            <div className="space-y-4">
+              {data.graph.map((node, i) => {
+                const nodeKey = node.id || `node-${i}`;
+                const isEditing = editingId === nodeKey;
+                
+                return (
+                  <div key={nodeKey} className="group bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:border-indigo-300 transition-all duration-300">
+                    <div className="flex items-stretch min-h-[80px]">
+                      <div className={`w-2 shrink-0 ${
+                        node.type === 'Objective' ? 'bg-blue-500' :
+                        node.type === 'Hypothesis' ? 'bg-emerald-500' :
+                        node.type === 'Method' ? 'bg-purple-500' :
+                        node.type === 'Output' ? 'bg-indigo-400' : 'bg-slate-300'
+                      }`} />
+                      
+                      <div className="flex-1 p-6 flex flex-col justify-center">
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border ${
+                             node.type === 'Objective' ? 'text-blue-600 border-blue-100 bg-blue-50' :
+                             node.type === 'Hypothesis' ? 'text-emerald-600 border-emerald-100 bg-emerald-50' :
+                             node.type === 'Method' ? 'text-purple-600 border-purple-100 bg-purple-50' : 'text-slate-500 border-slate-100 bg-slate-50'
+                          }`}>
+                            {node.type}
+                          </span>
+                          <button 
+                            onClick={() => setEditingId(isEditing ? null : nodeKey)}
+                            className="text-slate-300 hover:text-indigo-600 opacity-0 group-hover:opacity-100 transition-all"
+                          >
+                            {isEditing ? <Save size={14} /> : <Edit3 size={14} />}
+                          </button>
                         </div>
-                      )}
+
+                        {isEditing ? (
+                          <textarea
+                            autoFocus
+                            value={node.content}
+                            onChange={(e) => updateNode(nodeKey, { content: e.target.value })}
+                            className="w-full bg-slate-50 text-sm font-bold text-slate-800 border-none p-2 rounded-lg focus:ring-0 resize-none min-h-[60px]"
+                          />
+                        ) : (
+                          <p className="text-sm font-bold text-slate-800 leading-snug">{node.content}</p>
+                        )}
+
+                        {node.type === 'Method' && (
+                          <div className="mt-6 pt-6 border-t border-slate-50 grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="space-y-3">
+                              <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                <span className="flex items-center gap-1.5"><Clock size={12} /> Duration (Weeks)</span>
+                                <span className="text-indigo-600">{node.timeEstimate || 0}w</span>
+                              </div>
+                              <input 
+                                type="range" min="0" max="52" 
+                                value={node.timeEstimate || 0} 
+                                onChange={(e) => updateNode(nodeKey, { timeEstimate: parseInt(e.target.value) })}
+                                className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-indigo-600" 
+                              />
+                            </div>
+                            <div className="space-y-3">
+                              <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                <span className="flex items-center gap-1.5"><Zap size={12} /> Effort Level</span>
+                                <span className="text-amber-600">{node.effortLevel || 1}/10</span>
+                              </div>
+                              <input 
+                                type="range" min="1" max="10" 
+                                value={node.effortLevel || 1} 
+                                onChange={(e) => updateNode(nodeKey, { effortLevel: parseInt(e.target.value) })}
+                                className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-amber-500" 
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+              
+              <button className="w-full py-4 border-2 border-dashed border-slate-200 rounded-2xl text-slate-400 text-xs font-bold hover:bg-slate-50 hover:border-slate-300 transition-all flex items-center justify-center gap-2">
+                <Plus size={14} /> Add Structural Component
+              </button>
+            </div>
           </div>
 
-          {/* Sidebar Area */}
-          <div className="lg:col-span-5 space-y-6 sticky top-6">
-            <div className="bg-slate-900 text-white rounded-2xl p-6 shadow-xl border border-slate-800 overflow-hidden relative">
-               <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-                 <BarChart3 size={120} />
-               </div>
-               <h3 className="text-xs font-black uppercase tracking-[0.2em] mb-6 text-indigo-400 flex items-center gap-2">
-                 <BarChart3 size={14} /> {t.project_mapper.execution_table}
-               </h3>
-               
-               <div className="space-y-4 relative z-10">
-                 {methods.length > 0 ? methods.map((m, idx) => {
-                   const risk = calculateRisk(m);
-                   return (
-                     <div key={idx} className="flex items-center gap-4 bg-white/5 border border-white/10 p-4 rounded-xl hover:bg-white/10 transition-all">
-                        <div className={`w-2 h-2 rounded-full shrink-0 ${getRiskColor(risk)} shadow-[0_0_10px_rgba(255,255,255,0.2)]`} />
+          {/* Metrics Column */}
+          <div className="lg:col-span-4 space-y-8 sticky top-8 h-fit">
+            <div className="bg-slate-900 rounded-[2rem] p-8 text-white shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-8 opacity-10">
+                <BarChart3 size={100} />
+              </div>
+              
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] mb-8 text-indigo-400 flex items-center gap-2">
+                <Activity size={16} /> Execution Overview
+              </h3>
+
+              <div className="space-y-6 relative z-10">
+                <div>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-2">{t.project_mapper.total_weeks}</p>
+                  <div className="flex items-end gap-2">
+                    <span className="text-5xl font-black">{totalWeeks}</span>
+                    <span className="text-lg font-bold text-slate-500 mb-1.5">Weeks</span>
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-white/10 space-y-4">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Method Risk Profile</p>
+                  {methods.length > 0 ? methods.map((m, idx) => {
+                    const risk = calculateRisk(m);
+                    return (
+                      <div key={idx} className="flex items-center gap-4 group cursor-help">
+                        <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${getRiskColor(risk)}`} />
                         <div className="flex-1 min-w-0">
-                          <p className="text-[11px] font-bold truncate opacity-90">{m.content}</p>
-                          <div className="flex gap-3 mt-1 opacity-50">
-                            <span className="text-[9px] font-medium uppercase tracking-tighter">Time: {m.timeEstimate || 0}w</span>
-                            <span className="text-[9px] font-medium uppercase tracking-tighter">Risk Index: {risk.toFixed(1)}</span>
+                          <p className="text-[11px] font-bold truncate opacity-90 group-hover:opacity-100">{m.content}</p>
+                          <div className="flex gap-3 text-[9px] font-black uppercase text-white/40 mt-0.5">
+                            <span>Effort: {m.effortLevel || 1}</span>
+                            <span>Risk: {risk.toFixed(1)}</span>
                           </div>
                         </div>
-                        <ChevronRight size={14} className="opacity-20" />
-                     </div>
-                   );
-                 }) : (
-                   <p className="text-[10px] text-white/30 italic text-center py-8">No methods defined yet.</p>
-                 )}
-               </div>
-
-               <div className="mt-10 pt-6 border-t border-white/10 flex justify-between items-end">
-                 <div>
-                    <p className="text-[9px] font-black uppercase tracking-widest text-indigo-400 mb-1">{t.project_mapper.total_weeks}</p>
-                    <p className="text-3xl font-black">{totalWeeks} <span className="text-xs opacity-40">weeks</span></p>
-                 </div>
-                 <div className="text-right">
-                    <p className="text-[9px] font-black uppercase tracking-widest text-emerald-400 mb-1">Consistency</p>
-                    <p className="text-sm font-bold">{data.consistency_report.length} Checks Passed</p>
-                 </div>
-               </div>
+                      </div>
+                    );
+                  }) : <p className="text-[10px] italic text-white/20">Define methods to view risk map.</p>}
+                </div>
+              </div>
             </div>
 
-            <div className="bg-white border border-slate-200 rounded-2xl p-6">
-              <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4 flex items-center gap-2">
-                <AlertTriangle size={12} className="text-amber-500" /> Validation Report
+            <div className="bg-white border border-slate-200 rounded-[2rem] p-8 shadow-sm">
+              <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-2">
+                <ShieldAlert size={14} className="text-indigo-500" /> Structural Consistency
               </h3>
               <div className="space-y-3">
-                {(data.consistency_report || []).map((msg, i) => (
-                  <div key={i} className="flex gap-2 text-[10px] font-bold text-slate-600 leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-100">
-                    <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 mt-1 shrink-0" />
+                {data.consistency_report.map((msg, i) => (
+                  <div key={i} className="flex gap-3 text-[10px] font-bold text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 mt-1.5 shrink-0" />
                     {msg}
                   </div>
                 ))}
