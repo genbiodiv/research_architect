@@ -1,4 +1,3 @@
-
 import { GoogleGenAI } from "@google/genai";
 import { FacilityType, Language } from "./types";
 
@@ -16,7 +15,6 @@ GLOBAL CONSTRAINTS:
 const FACILITY_PROMPTS: Record<FacilityType, string> = {
   [FacilityType.QUESTION_EXPLORER]: `
     Purpose: Expand a research question into a branching map by axes: scale, mechanism, comparison, causality, feasibility, measurement, confounders.
-    User Input: An initial research question or area of interest.
     JSON Output Requirements: 
     {
       "schema_version": "1.1.0",
@@ -27,7 +25,6 @@ const FACILITY_PROMPTS: Record<FacilityType, string> = {
   `,
   [FacilityType.HYPOTHESIS_ENGINE]: `
     Purpose: Convert ideas/questions into testable hypotheses with variables, directionality, and predictions.
-    User Input: Refined research question or draft ideas.
     JSON Output Requirements: 
     {
       "hypotheses": [{"id": "string", "statement": "string", "variables": {"independent": [], "dependent": [], "control": []}, "testability_score": number, "prediction": "string"}],
@@ -79,13 +76,8 @@ function cleanJsonResponse(text: string): string {
 export async function runFacility(facility: FacilityType, userInput: string, currentProjectState: any, language: Language = 'en') {
   if (facility === FacilityType.SPEC_VIEWER) return null;
   
-  // MANDATORY: Exclusively use process.env.API_KEY as per system requirements.
-  const apiKey = process.env.API_KEY;
-  if (!apiKey) {
-    throw new Error("ARCH Error: process.env.API_KEY is not defined.");
-  }
-
-  const ai = new GoogleGenAI({ apiKey: apiKey });
+  // Strict requirement: Always use process.env.API_KEY for initialization.
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
 
   const prompt = `
     ${SHARED_CONTEXT}
@@ -111,12 +103,10 @@ export async function runFacility(facility: FacilityType, userInput: string, cur
     const cleanedText = cleanJsonResponse(response.text || "{}");
     return JSON.parse(cleanedText);
   } catch (error) {
-    console.error("ARCH AI Generation Error:", error);
+    console.error("ARCH Logic Processor Error:", error);
     return {
       error: true,
-      nodes: [],
-      graph: [],
-      claims: { user_claims: [], system_inferences: ["The logic processor encountered a structural error."], assumptions: [] }
+      claims: { user_claims: [], system_inferences: ["The logic engine failed to parse the structural chain."], assumptions: [] }
     };
   }
 }

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { FacilityType, AppState, Language } from './types';
 import { translations } from './translations';
@@ -16,9 +15,9 @@ import {
   Terminal,
   PanelRightClose,
   PanelRightOpen,
-  LayoutGrid,
   ShieldCheck,
-  Activity
+  Activity,
+  Box
 } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -26,8 +25,8 @@ const App: React.FC = () => {
     language: 'en',
     currentProject: {
       id: 'default-project',
-      title: 'Structural Research Scaffold',
-      description: 'Systematic research design process.',
+      title: 'Structural Research Design',
+      description: 'Systematic research scaffold.',
       facilities: {}
     },
     activeFacility: FacilityType.QUESTION_EXPLORER,
@@ -47,8 +46,6 @@ const App: React.FC = () => {
     return () => clearInterval(timer);
   }, [sessionStartTime]);
 
-  const t = translations[state.language];
-
   const updateFacilityData = (facility: FacilityType, data: any) => {
     setState(prev => ({
       ...prev,
@@ -62,10 +59,6 @@ const App: React.FC = () => {
   const navigateToFacility = (facility: FacilityType, initialValue?: string) => {
     if (initialValue) setPreFillValue(initialValue);
     setState(prev => ({ ...prev, activeFacility: facility }));
-  };
-
-  const toggleLanguage = () => {
-    setState(prev => ({ ...prev, language: prev.language === 'en' ? 'es' : 'en' }));
   };
 
   const renderActiveFacility = () => {
@@ -128,7 +121,6 @@ const App: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-white font-sans text-slate-900 overflow-hidden">
-      {/* LEFT NAVIGATION SIDEBAR */}
       <Sidebar 
         activeFacility={state.activeFacility} 
         language={state.language}
@@ -136,35 +128,26 @@ const App: React.FC = () => {
         onSelect={(f) => setState(p => ({...p, activeFacility: f}))} 
       />
       
-      {/* WORKSPACE AREA */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-16 border-b border-slate-100 bg-white flex items-center justify-between px-8 shrink-0 z-20">
+        <header className="h-14 border-b border-slate-100 bg-white flex items-center justify-between px-8 shrink-0 z-20">
           <div className="flex items-center gap-4 min-w-0">
-            <div className="flex flex-col min-w-0">
-              <h1 className="text-xs font-black text-slate-800 tracking-[0.1em] uppercase truncate leading-none mb-1">
-                {state.currentProject.title}
-              </h1>
-              <div className="flex items-center gap-1.5 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-                <span>{state.activeFacility.replace('_', ' ')}</span>
-                <ChevronRight size={10} className="text-slate-300" />
-                <span className="text-indigo-600">Active Stage</span>
-              </div>
+            <div className="hidden lg:flex items-center gap-2 px-3 py-1 bg-slate-50 rounded-full border border-slate-100">
+              <Box size={12} className="text-slate-400" />
+              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{state.currentProject.title}</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 uppercase tracking-widest">
+              <span>{state.activeFacility.replace('_', ' ')}</span>
+              <ChevronRight size={10} className="text-slate-200" />
+              <span className="text-indigo-600">Active</span>
             </div>
           </div>
           
           <div className="flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-slate-50 rounded-full border border-slate-100">
+            <div className="flex items-center gap-2 px-3 py-1 bg-slate-50 rounded-full border border-slate-100">
               <Clock size={11} className="text-slate-400" />
-              <span className="text-[9px] font-black text-slate-500 tracking-tight uppercase">{elapsed}</span>
+              <span className="text-[9px] font-black text-slate-500 uppercase">{elapsed}</span>
             </div>
             
-            <button 
-              onClick={toggleLanguage} 
-              className="text-[10px] font-black text-slate-400 hover:text-indigo-600 transition-colors uppercase w-8"
-            >
-              {state.language}
-            </button>
-
             <button 
               onClick={() => setIsLedgerOpen(!isLedgerOpen)}
               className={`p-2 rounded-lg transition-all ${isLedgerOpen ? 'bg-indigo-50 text-indigo-600 shadow-inner' : 'text-slate-400 hover:bg-slate-50'}`}
@@ -177,86 +160,77 @@ const App: React.FC = () => {
               onClick={() => {
                 const blob = new Blob([JSON.stringify(state.currentProject, null, 2)], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
-                const a = document.createElement('a'); a.href = url; a.download = `arch-blueprint.json`; a.click();
+                const a = document.createElement('a'); a.href = url; a.download = `blueprint.json`; a.click();
               }}
-              className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-md active:scale-95"
+              className="bg-slate-900 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-lg active:scale-95 flex items-center gap-2"
             >
               <Download size={12} />
-              <span className="hidden md:inline">Export</span>
+              Export
             </button>
           </div>
         </header>
 
         <div className="flex-1 flex overflow-hidden">
-          {/* SCROLLABLE FACILITY CONTENT */}
-          <main className="flex-1 overflow-y-auto custom-scrollbar bg-slate-50/40">
-            <div className="max-w-4xl mx-auto p-8 lg:p-12 fade-in">
+          <main className="flex-1 overflow-y-auto custom-scrollbar bg-slate-50/30">
+            <div className="max-w-4xl mx-auto p-10 lg:p-14 fade-in">
               {renderActiveFacility()}
             </div>
           </main>
 
-          {/* DIAGNOSTIC LEDGER (RIGHT SIDEBAR) */}
           <aside 
             className={`bg-white border-l border-slate-100 transition-all duration-300 ease-in-out flex flex-col shrink-0 overflow-hidden shadow-2xl ${isLedgerOpen ? 'w-80 opacity-100' : 'w-0 opacity-0 border-l-0'}`}
           >
-            <div className="p-5 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
+            <div className="p-6 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
               <h2 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] flex items-center gap-2">
                 <Terminal size={12} className="text-indigo-600" />
-                Scientific Ledger
+                Ledger
               </h2>
               <ShieldCheck size={14} className="text-emerald-500" />
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar space-y-8">
-              {/* User Claims */}
+            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar space-y-10">
               <div>
-                <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 flex justify-between items-center">
-                  Methodological Claims
-                  <span className="bg-indigo-50 text-indigo-600 px-1.5 rounded text-[8px] font-black">{activeClaims.user_claims.length}</span>
-                </h3>
+                <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Core Premises</h3>
                 <div className="space-y-3">
                   {activeClaims.user_claims.length > 0 ? activeClaims.user_claims.map((claim: string, i: number) => (
                     <div key={i} className="p-3 bg-slate-50 border border-slate-100 rounded-xl text-[11px] font-medium text-slate-600 italic leading-relaxed">
                       "{claim}"
                     </div>
-                  )) : <p className="text-[10px] text-slate-300 italic">No premises detected.</p>}
+                  )) : <p className="text-[10px] text-slate-300 italic">No direct premises detected.</p>}
                 </div>
               </div>
 
-              {/* System Inferences */}
               <div>
-                <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Logic Inferences</h3>
+                <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Structural Inferences</h3>
                 <div className="space-y-4">
                    {activeClaims.system_inferences.length > 0 ? activeClaims.system_inferences.map((inf: string, i: number) => (
                     <div key={i} className="flex gap-3 text-[11px] font-medium text-slate-700 leading-relaxed group">
-                      <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 shrink-0 group-hover:scale-125 transition-transform" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 shrink-0" />
                       <p>{inf}</p>
                     </div>
-                  )) : <p className="text-[10px] text-slate-300 italic">Parsing structural chain...</p>}
+                  )) : <p className="text-[10px] text-slate-300 italic">Parsing logical architecture...</p>}
                 </div>
               </div>
 
-              {/* Red Assumptions */}
               <div>
-                <h3 className="text-[9px] font-black text-rose-500 uppercase tracking-[0.2em] mb-4">Critical Assumptions</h3>
+                <h3 className="text-[9px] font-black text-rose-500 uppercase tracking-[0.2em] mb-4">Critique & Assumptions</h3>
                 <div className="space-y-3">
                   {activeClaims.assumptions.length > 0 ? activeClaims.assumptions.map((ass: string, i: number) => (
                     <div key={i} className="p-4 bg-rose-50 border border-rose-100 rounded-xl text-[11px] font-bold text-rose-800 leading-snug shadow-sm">
                       ⚠️ {ass}
                     </div>
-                  )) : <p className="text-[10px] text-slate-300 italic">Logic appears stable.</p>}
+                  )) : <p className="text-[10px] text-slate-300 italic">No risks flagged.</p>}
                 </div>
               </div>
             </div>
 
-            {/* Bottom Status Panel */}
             <div className="p-6 border-t border-slate-100 bg-slate-950 text-slate-400">
                <div className="flex items-center gap-2 mb-3">
                  <Activity size={14} className="text-emerald-400" />
                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white">System Rigor</span>
                </div>
                <p className="text-[10px] leading-relaxed font-medium">
-                 ARCH enforces a strict separation between user-defined premises and system-deduced inferences to eliminate circular reasoning.
+                 ARCH isolates user premises from system deductions to eliminate circular reasoning.
                </p>
             </div>
           </aside>
