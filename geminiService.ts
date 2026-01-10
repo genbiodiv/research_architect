@@ -79,7 +79,13 @@ function cleanJsonResponse(text: string): string {
 export async function runFacility(facility: FacilityType, userInput: string, currentProjectState: any, language: Language = 'en') {
   if (facility === FacilityType.SPEC_VIEWER) return null;
   
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  // MANDATORY: Exclusively use process.env.API_KEY as per system requirements.
+  const apiKey = process.env.API_KEY;
+  if (!apiKey) {
+    throw new Error("ARCH Error: process.env.API_KEY is not defined.");
+  }
+
+  const ai = new GoogleGenAI({ apiKey: apiKey });
 
   const prompt = `
     ${SHARED_CONTEXT}
@@ -105,12 +111,12 @@ export async function runFacility(facility: FacilityType, userInput: string, cur
     const cleanedText = cleanJsonResponse(response.text || "{}");
     return JSON.parse(cleanedText);
   } catch (error) {
-    console.error("AI Generation Error:", error);
+    console.error("ARCH AI Generation Error:", error);
     return {
       error: true,
       nodes: [],
       graph: [],
-      claims: { user_claims: [], system_inferences: ["The system encountered an error parsing the scientific structure."], assumptions: [] }
+      claims: { user_claims: [], system_inferences: ["The logic processor encountered a structural error."], assumptions: [] }
     };
   }
 }

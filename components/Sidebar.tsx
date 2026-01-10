@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { FacilityType, Language } from '../types';
 import { translations } from '../translations';
@@ -34,21 +35,21 @@ const Sidebar: React.FC<SidebarProps> = ({ activeFacility, language, projectTitl
   const progress = ((activeIndex + 1) / items.length) * 100;
 
   return (
-    <aside className="w-20 md:w-64 bg-slate-900 h-screen flex flex-col shrink-0 z-40 text-slate-400 transition-all border-r border-white/5">
-      {/* Brand & Identity */}
+    <aside className="w-20 md:w-64 bg-slate-900 h-screen flex flex-col shrink-0 z-40 text-slate-400 border-r border-white/5 shadow-2xl transition-all">
+      {/* Brand Header */}
       <div className="p-6 md:p-8 h-20 flex items-center gap-3 overflow-hidden border-b border-white/5">
-        <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-indigo-900/40 shrink-0 ring-4 ring-indigo-900/20">A</div>
-        <div className="flex flex-col hidden md:flex">
+        <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-indigo-500/30 shrink-0">A</div>
+        <div className="flex flex-col hidden md:flex min-w-0">
           <span className="text-xl font-black tracking-tighter text-white leading-none">ARCH</span>
-          <span className="text-[8px] font-black text-indigo-400 uppercase tracking-[0.2em] mt-1">Research Engine</span>
+          <span className="text-[8px] font-black text-indigo-400 uppercase tracking-[0.3em] mt-1 truncate">Research Architect</span>
         </div>
       </div>
       
-      {/* Core Workflow Navigation */}
+      {/* Pipeline Navigation */}
       <div className="px-3 md:px-5 py-8 space-y-12 flex-1 overflow-y-auto custom-scrollbar">
         <div>
-          <p className="px-4 text-[9px] font-black text-slate-500 uppercase tracking-[0.3em] mb-6 hidden md:block">Workflow Steps</p>
-          <nav className="space-y-2">
+          <p className="px-4 text-[9px] font-black text-slate-500 uppercase tracking-[0.4em] mb-8 hidden md:block">The Pipeline</p>
+          <nav className="space-y-2.5">
             {items.map(item => (
               <button
                 key={item.type}
@@ -56,29 +57,29 @@ const Sidebar: React.FC<SidebarProps> = ({ activeFacility, language, projectTitl
                 title={item.label}
                 className={`w-full flex items-center justify-center md:justify-between group px-3 md:px-4 py-3.5 rounded-xl transition-all relative ${
                   activeFacility === item.type 
-                    ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-950/50' 
+                    ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-900/40 translate-x-1' 
                     : 'text-slate-500 hover:text-white hover:bg-white/5'
                 }`}
               >
                 <div className="flex items-center gap-4">
-                  <div className={`text-[9px] font-black md:inline hidden ${activeFacility === item.type ? 'text-indigo-200' : 'text-slate-600'}`}>
+                  <div className={`text-[9px] font-black hidden md:inline-block w-4 ${activeFacility === item.type ? 'text-indigo-200' : 'text-slate-700'}`}>
                     {item.step}
                   </div>
-                  <item.icon size={18} strokeWidth={2.5} className={activeFacility === item.type ? 'text-white' : 'group-hover:scale-110 transition-transform'} />
-                  <span className="text-[11px] font-bold hidden md:inline tracking-tight">{item.label}</span>
+                  <item.icon size={18} strokeWidth={2.5} className={activeFacility === item.type ? 'text-white' : 'group-hover:scale-110 group-hover:text-slate-200 transition-all'} />
+                  <span className="text-[11px] font-bold hidden md:inline-block tracking-tight">{item.label}</span>
                 </div>
-                {activeFacility === item.type && <ArrowRight size={14} className="text-indigo-300 hidden md:block" />}
+                {activeFacility === item.type && <ArrowRight size={14} className="text-indigo-200 hidden md:block" />}
               </button>
             ))}
           </nav>
         </div>
       </div>
 
-      {/* Progress Footer */}
-      <div className="p-8 bg-black/20 hidden md:block">
+      {/* Progress Metric */}
+      <div className="p-8 border-t border-white/5 bg-black/20 hidden md:block">
         <div className="flex flex-col gap-4">
-          <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-slate-500">
-            <span>Structure Integrity</span>
+          <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">
+            <span>Rigour Score</span>
             <span className="text-indigo-400">{Math.round(progress)}%</span>
           </div>
           <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden">
@@ -87,10 +88,9 @@ const Sidebar: React.FC<SidebarProps> = ({ activeFacility, language, projectTitl
               style={{ width: `${progress}%` }}
             />
           </div>
-          <div className="flex items-center gap-2 text-[8px] font-black text-slate-600 uppercase tracking-widest opacity-60">
-            <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
-            Active Validation
-          </div>
+          <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest leading-relaxed">
+            Integrity check active
+          </p>
         </div>
       </div>
     </aside>
