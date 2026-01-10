@@ -12,10 +12,11 @@ import {
   ChevronRight, 
   Download, 
   Clock, 
-  Activity,
-  ShieldCheck,
+  Settings2,
   Terminal,
-  AlertCircle,
+  PanelRightClose,
+  PanelRightOpen,
+  LayoutGrid,
   HelpCircle
 } from 'lucide-react';
 
@@ -24,16 +25,17 @@ const App: React.FC = () => {
     language: 'en',
     currentProject: {
       id: 'default-project',
-      title: 'Structural Research Design',
-      description: 'Systematic approach to architectural research scaffolding.',
+      title: 'Structural Research Scaffold',
+      description: 'Systematic research design process.',
       facilities: {}
     },
-    activeFacility: FacilityType.PROJECT_MAPPER,
+    activeFacility: FacilityType.QUESTION_EXPLORER,
     history: []
   });
 
   const [preFillValue, setPreFillValue] = useState<string | null>(null);
   const [elapsed, setElapsed] = useState('0m');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [sessionStartTime] = useState(Date.now());
 
   useEffect(() => {
@@ -121,15 +123,11 @@ const App: React.FC = () => {
     }
   };
 
-  const getActiveClaims = () => {
-    return state.currentProject.facilities[state.activeFacility]?.claims || { user_claims: [], system_inferences: [], assumptions: [] };
-  };
-
-  const activeClaims = getActiveClaims();
+  const activeClaims = state.currentProject.facilities[state.activeFacility]?.claims || { user_claims: [], system_inferences: [], assumptions: [] };
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      {/* 1. PRIMARY SIDEBAR (Navigation) */}
+    <div className="flex h-screen overflow-hidden bg-white">
+      {/* 1. Main Navigation Sidebar */}
       <Sidebar 
         activeFacility={state.activeFacility} 
         language={state.language}
@@ -137,129 +135,137 @@ const App: React.FC = () => {
         onSelect={(f) => setState(p => ({...p, activeFacility: f}))} 
       />
       
-      {/* 2. MAIN STAGE */}
-      <div className="flex-1 flex flex-col min-w-0 bg-slate-50/50">
-        
-        {/* TOP BAR: Project Context & Global Actions */}
-        <header className="h-14 border-b bg-white flex items-center justify-between px-6 shrink-0 z-20">
-          <div className="flex items-center gap-4 min-w-0">
+      {/* 2. Workspace Area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Global Header */}
+        <header className="h-16 border-b bg-white flex items-center justify-between px-8 shrink-0 z-30">
+          <div className="flex items-center gap-6 overflow-hidden">
             <div className="flex flex-col min-w-0">
-              <h1 className="text-xs font-black text-slate-800 truncate uppercase tracking-widest">{state.currentProject.title}</h1>
-              <div className="flex items-center gap-1.5 text-[9px] font-bold text-slate-400">
+              <h1 className="text-sm font-black text-slate-800 tracking-tight uppercase truncate">{state.currentProject.title}</h1>
+              <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                 <span>{state.activeFacility.replace('_', ' ')}</span>
                 <ChevronRight size={10} />
-                <span className="text-indigo-500">Live Workspace</span>
+                <span className="text-indigo-600">Active Workspace</span>
               </div>
             </div>
           </div>
           
           <div className="flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 bg-slate-50 rounded-lg border border-slate-100">
-              <Clock size={11} className="text-slate-400" />
-              <span className="text-[9px] font-black text-slate-500 tracking-tighter uppercase">{elapsed}</span>
+            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-lg border border-slate-100">
+              <Clock size={12} className="text-slate-400" />
+              <span className="text-[10px] font-black text-slate-500 tracking-tight uppercase">Session: {elapsed}</span>
             </div>
             
-            <button 
-              onClick={toggleLanguage}
-              className="w-8 h-8 flex items-center justify-center text-[9px] font-black text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all border border-slate-100"
-            >
-              {state.language.toUpperCase()}
-            </button>
+            <div className="h-8 w-px bg-slate-100 mx-2" />
             
+            <button onClick={toggleLanguage} className="text-[10px] font-black text-slate-400 hover:text-indigo-600 transition-colors uppercase w-8">
+              {state.language}
+            </button>
+
+            <button 
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className={`p-2 rounded-lg transition-all ${isSidebarOpen ? 'bg-indigo-50 text-indigo-600' : 'text-slate-400 hover:bg-slate-50'}`}
+              title="Toggle Insight Ledger"
+            >
+              {isSidebarOpen ? <PanelRightClose size={20} /> : <PanelRightOpen size={20} />}
+            </button>
+
             <button 
               onClick={() => {
                 const blob = new Blob([JSON.stringify(state.currentProject, null, 2)], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
-                const a = document.createElement('a'); a.href = url; a.download = `arch-project.json`; a.click();
+                const a = document.createElement('a'); a.href = url; a.download = `arch-export.json`; a.click();
               }}
-              className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all"
+              className="hidden lg:flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-md active:scale-95"
             >
-              <Download size={12} />
-              <span className="hidden md:inline">Export</span>
+              <Download size={14} />
+              Export
             </button>
           </div>
         </header>
 
-        {/* WORKSPACE & LEDGER SPLIT */}
         <div className="flex-1 flex overflow-hidden">
-          
-          {/* CENTER: FACILITY WORKSPACE */}
-          <main className="flex-1 overflow-y-auto custom-scrollbar">
-            <div className="max-w-4xl mx-auto p-6 md:p-10 facility-enter">
+          {/* Main Content Area */}
+          <main className="flex-1 overflow-y-auto custom-scrollbar bg-slate-50/30">
+            <div className="max-w-4xl mx-auto p-6 lg:p-12 fade-in pb-24">
               {renderActiveFacility()}
             </div>
           </main>
 
-          {/* RIGHT: ARCHITECT'S LEDGER (Logic Tracking) */}
-          <aside className="w-72 border-l bg-white flex flex-col shrink-0 hidden lg:flex shadow-[-4px_0_12px_rgba(0,0,0,0.02)]">
-            <div className="p-4 border-b bg-slate-50/50 flex items-center justify-between">
-              <h2 className="text-[9px] font-black text-slate-900 uppercase tracking-[0.2em] flex items-center gap-2">
-                <Terminal size={12} className="text-indigo-600" />
-                Logic Ledger
+          {/* Collapsible Insight Sidebar (Ledger) */}
+          <aside 
+            className={`bg-white border-l transition-all duration-300 ease-in-out flex flex-col shrink-0 overflow-hidden shadow-2xl ${isSidebarOpen ? 'w-80' : 'w-0 border-l-0'}`}
+          >
+            <div className="p-6 border-b bg-slate-50/50 flex items-center justify-between">
+              <h2 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] flex items-center gap-2">
+                <Terminal size={14} className="text-indigo-600" />
+                Scientific Ledger
               </h2>
-              <ShieldCheck size={12} className="text-emerald-500" />
             </div>
 
-            <div className="flex-1 overflow-y-auto p-5 custom-scrollbar space-y-8 text-[11px]">
-              {/* User Claims */}
-              <section className="space-y-3">
-                <div className="flex justify-between items-center text-[9px] font-black uppercase text-slate-400 tracking-widest">
-                  <span>User Claims</span>
-                  <span className="bg-slate-100 px-1.5 rounded text-slate-500">{activeClaims.user_claims.length}</span>
-                </div>
-                <div className="space-y-2">
-                  {activeClaims.user_claims.length > 0 ? activeClaims.user_claims.map((c: string, i: number) => (
-                    <div key={i} className="p-3 bg-slate-50 border border-slate-100 rounded-xl text-slate-600 italic leading-relaxed">
-                      "{c}"
+            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar space-y-8">
+              {/* Claims Section */}
+              <div>
+                <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-4 flex justify-between items-center">
+                  User Premises
+                  <span className="bg-slate-100 px-1.5 py-0.5 rounded text-[8px]">{activeClaims.user_claims.length}</span>
+                </h3>
+                <div className="space-y-3">
+                  {activeClaims.user_claims.length > 0 ? activeClaims.user_claims.map((claim: string, i: number) => (
+                    <div key={i} className="p-3 bg-slate-50 border border-slate-100 rounded-xl text-[11px] font-medium text-slate-600 leading-relaxed italic">
+                      "{claim}"
                     </div>
-                  )) : <div className="text-slate-300 italic">No explicit claims detected.</div>}
+                  )) : <p className="text-[10px] text-slate-300 italic">No direct claims provided yet.</p>}
                 </div>
-              </section>
+              </div>
 
-              {/* System Inferences */}
-              <section className="space-y-3">
-                <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Inferences</p>
-                <div className="space-y-2.5">
+              {/* Inferences Section */}
+              <div>
+                <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-4">Architectural Inferences</h3>
+                <div className="space-y-3">
                    {activeClaims.system_inferences.length > 0 ? activeClaims.system_inferences.map((inf: string, i: number) => (
-                    <div key={i} className="flex gap-2.5 items-start text-slate-700 font-medium">
-                      <div className="w-1 h-1 rounded-full bg-indigo-400 mt-1.5 shrink-0" />
+                    <div key={i} className="flex gap-3 text-[11px] font-medium text-slate-700 leading-relaxed group">
+                      <div className="w-1 h-1 rounded-full bg-indigo-500 mt-1.5 shrink-0 group-hover:scale-150 transition-transform" />
                       <p>{inf}</p>
                     </div>
-                  )) : <div className="text-slate-300 italic">Structural analysis pending...</div>}
+                  )) : <p className="text-[10px] text-slate-300 italic">Analyzing structural logic...</p>}
                 </div>
-              </section>
+              </div>
 
-              {/* Red Assumptions */}
-              <section className="space-y-3">
-                <p className="text-[9px] font-black uppercase text-rose-400 tracking-widest">Untested Assumptions</p>
-                <div className="space-y-2">
+              {/* Critical Assumptions Section */}
+              <div>
+                <h3 className="text-[9px] font-black text-rose-500 uppercase tracking-widest mb-4">Critical Assumptions</h3>
+                <div className="space-y-3">
                   {activeClaims.assumptions.length > 0 ? activeClaims.assumptions.map((ass: string, i: number) => (
-                    <div key={i} className="p-3 bg-rose-50 border border-rose-100 rounded-xl font-bold text-rose-700 leading-snug">
+                    <div key={i} className="p-4 bg-rose-50 border border-rose-100 rounded-xl text-[11px] font-bold text-rose-800 leading-snug shadow-sm">
                       ⚠️ {ass}
                     </div>
-                  )) : <div className="text-slate-300 italic">System currently stable.</div>}
+                  )) : <p className="text-[10px] text-slate-300 italic">Architecture appears grounded.</p>}
                 </div>
-              </section>
+              </div>
             </div>
 
-            {/* Bottom Methodology Guide */}
-            <div className="p-5 border-t bg-architect-900 text-white/90">
-              <div className="flex items-center gap-2 mb-2">
-                <Activity size={12} className="text-indigo-400" />
-                <span className="text-[9px] font-black uppercase tracking-widest">Methodology Insight</span>
-              </div>
-              <p className="text-[10px] leading-relaxed text-slate-400 font-medium italic">
-                The ledger separates user belief from system deduction to prevent logical circularity in your design.
-              </p>
+            {/* Methodology Context */}
+            <div className="p-6 border-t bg-slate-900 text-slate-400">
+               <div className="flex items-center gap-2 mb-3">
+                 <LayoutGrid size={14} className="text-indigo-400" />
+                 <span className="text-[9px] font-black uppercase tracking-widest text-white">System Integrity</span>
+               </div>
+               <p className="text-[10px] leading-relaxed font-medium">
+                 The ARCH Ledger differentiates your premises from logical extensions to avoid bias and circular reasoning.
+               </p>
             </div>
           </aside>
         </div>
       </div>
       
-      {/* FLOATING HELP */}
-      <div className="fixed bottom-6 right-6">
-        <button className="w-10 h-10 bg-white border border-slate-200 rounded-full shadow-lg flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-100 transition-all">
-          <HelpCircle size={18} />
+      {/* Floating Action / Help */}
+      <div className="fixed bottom-8 right-8 z-50 flex flex-col gap-3">
+        <button className="w-12 h-12 bg-white border border-slate-200 text-slate-400 rounded-full shadow-lg flex items-center justify-center hover:text-indigo-600 hover:border-indigo-100 transition-all active:scale-90 group relative">
+          <HelpCircle size={22} />
+          <div className="absolute right-full mr-4 bg-slate-900 text-white text-[10px] font-bold px-3 py-1 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+            Scientific Methodology Guide
+          </div>
         </button>
       </div>
     </div>

@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ARCH | Research Architect</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <!-- Tailwind CDN is used for rapid prototyping and deployment in strict no-node-modules environments -->
+    <!-- Shim for Vite/Vercel to ensure process.env.API_KEY is accessible to the SDK -->
+    <script>
+      window.process = window.process || { env: {} };
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -36,8 +39,8 @@
     <style type="text/css">
       body {
         background-color: #f8fafc;
-        background-image: radial-gradient(#e2e8f0 0.8px, transparent 0.8px);
-        background-size: 24px 24px;
+        background-image: radial-gradient(#cbd5e1 0.5px, transparent 0.5px);
+        background-size: 32px 32px;
       }
       .custom-scrollbar::-webkit-scrollbar {
         width: 4px;
@@ -52,12 +55,11 @@
       .custom-scrollbar::-webkit-scrollbar-thumb:hover {
         background: #cbd5e1;
       }
-      /* Clean transitions for the UI */
-      .facility-enter {
-        animation: fadeIn 0.3s ease-out forwards;
+      .fade-in {
+        animation: fadeIn 0.4s ease-out forwards;
       }
       @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(8px); }
+        from { opacity: 0; transform: translateY(10px); }
         to { opacity: 1; transform: translateY(0); }
       }
     </style>
@@ -73,7 +75,7 @@
     }
     </script>
 </head>
-<body class="text-architect-900 min-h-screen antialiased">
+<body class="text-slate-900 min-h-screen antialiased">
     <div id="root"></div>
     <script type="module" src="./index.tsx"></script>
 </body>
